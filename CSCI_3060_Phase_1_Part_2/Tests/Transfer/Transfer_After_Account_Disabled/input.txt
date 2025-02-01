@@ -1,0 +1,7 @@
+Login
+Standard
+John Doe
+Transfer
+00001 (Account Number)
+00006 (Account Number)
+Logout

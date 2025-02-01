@@ -1,0 +1,6 @@
+login
+standard
+John Doe
+04
+100.00 //withdrawl amount
+300.00 //deposit amount

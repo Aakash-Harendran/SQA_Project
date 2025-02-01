@@ -1,0 +1,6 @@
+login
+admin
+01
+John Doe
+00001
+200.00

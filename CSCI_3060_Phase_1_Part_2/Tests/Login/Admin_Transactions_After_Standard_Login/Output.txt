@@ -1,0 +1,7 @@
+welcome to the banking system
+
+enter session type:
+enter account holder name:
+login accepted
+Error: "This action is not allowed in standard mode."
+session terminated 

@@ -1,0 +1,7 @@
+enter session type:
+login accepted
+Enter account holder name to deposit into:
+Amount account number:
+Enter amount deposit:
+Error: "Deposit amount cannot be negative."
+session terminated 

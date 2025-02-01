@@ -1,0 +1,7 @@
+login
+admin
+03
+John Doe
+00001
+EC
+50.00

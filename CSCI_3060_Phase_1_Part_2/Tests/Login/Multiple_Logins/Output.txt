@@ -1,0 +1,6 @@
+welcome to the banking system
+
+enter session type:
+enter account holder name:
+Error: "You are already logged in. Please log out before starting a new session."
+session terminated 

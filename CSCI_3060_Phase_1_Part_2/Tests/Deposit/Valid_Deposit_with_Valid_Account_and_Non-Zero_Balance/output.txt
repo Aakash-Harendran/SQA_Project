@@ -1,0 +1,10 @@
+welcome to the banking system
+
+enter session type:
+login accepted
+Enter account holder name to deposit into:
+Amount account number:
+Deposit successful: $500.00
+Funds are not available for use in the current session.
+Updated balance: $700.00  // Assuming the account balance before the deposit was $200.00
+session terminated

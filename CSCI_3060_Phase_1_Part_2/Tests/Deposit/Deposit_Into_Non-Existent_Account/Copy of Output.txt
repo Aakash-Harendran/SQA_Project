@@ -1,0 +1,8 @@
+welcome to the banking system
+
+enter session type:
+login accepted
+Enter account holder name to deposit into:
+Amount account number:
+Error: "Invalid account number. The account does not exist."
+session terminated

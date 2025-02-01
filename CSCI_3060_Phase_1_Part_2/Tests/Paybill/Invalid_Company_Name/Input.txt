@@ -1,0 +1,7 @@
+login
+standard
+John Doe
+03
+00001
+AB
+

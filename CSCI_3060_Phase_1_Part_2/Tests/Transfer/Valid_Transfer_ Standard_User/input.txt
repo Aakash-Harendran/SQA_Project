@@ -1,0 +1,9 @@
+Login
+Standard
+John Doe
+Transfer
+00001 (Account Number)
+00002 (Account Number)
+$100 (Transfer Amount)
+Logout
+

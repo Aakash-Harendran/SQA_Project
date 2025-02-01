@@ -1,0 +1,7 @@
+welcome to the banking system
+
+enter session type:
+login accepted
+01-withdrawal, 02-transfer, 03-paybill, 04-deposit, 05-create, 06-delete, 07-disable, 08changeplan, 00-end of session 
+Error: "Only admin users are allowed to delete accounts."
+session terminated

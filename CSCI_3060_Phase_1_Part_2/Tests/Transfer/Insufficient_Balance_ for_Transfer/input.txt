@@ -1,0 +1,8 @@
+Login
+Admin
+Transfer
+John Doe
+00001 (Account Number)
+00002 (Account Number)
+(Transfer Amount)
+Logout

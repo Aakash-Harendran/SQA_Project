@@ -1,0 +1,5 @@
+welcome to the banking system
+
+enter session type:
+Error: "Session type is required. Please choose 'standard' or 'admin'."
+session terminated 
