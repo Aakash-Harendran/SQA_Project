@@ -17,7 +17,23 @@ class FrontEndSystem:
             return
 
         if transaction_code == "login":
-            Login().authenticate_user(*args)
+            if Login().authenticate_user(*args):
+                print("Login successful.")
+                
+                # **Transaction Menu Appears Here**
+                print("\n===== Available Transactions =====")
+                print("01 - Withdrawal")
+                print("02 - Transfer")
+                print("03 - Pay Bill")
+                print("04 - Deposit")
+                print("05 - Create Account")
+                print("06 - Delete Account")
+                print("07 - Disable Account")
+                print("08 - Change Plan")
+                print("00 - End of Session\n")
+                
+            else:
+                print("Error: Invalid login credentials.")
         elif transaction_code == "withdraw":
             Withdraw().withdraw_amount(*args)
         elif transaction_code == "transfer":
@@ -58,7 +74,6 @@ class Login:
         elif session_type == "standard" and account_name in valid_standard_users:
             return True
         else:
-            #print("Error: Invalid login details.")
             return False
 
 class Withdraw:
@@ -95,7 +110,6 @@ class CreateAccount:
 class DeleteAccount:
     def remove_account(self, account_number):
         print(f"Deleting account {account_number}")
-        # Account removal logic goes here
         print("Account deleted successfully.")
 
 class DisableAccount:
@@ -115,28 +129,28 @@ frontend = FrontEndSystem()
 frontend.start_session("standard")
 
 # Perform a login
-frontend.process_transaction("login", "standard")
+frontend.process_transaction("login", "standard", "standard_user")
 
 # Attempting a withdrawal
 frontend.process_transaction("withdraw", "12345", 100, 500)
 
 # Attempting a transfer
-frontend.process_transaction("transfer", "12345", "67890", 200)
+#frontend.process_transaction("transfer", "12345", "67890", 200)
 
 # Attempting a bill payment
-frontend.process_transaction("paybill", "12345", "The Bright Light Electric Company", 50)
+#frontend.process_transaction("paybill", "12345", "The Bright Light Electric Company", 50)
 
 # Attempting a deposit
-frontend.process_transaction("deposit", "12345", 100)
+#frontend.process_transaction("deposit", "12345", 100)
 
 # Create a new account
-frontend.process_transaction("create", "Jane Doe", 500)
+#frontend.process_transaction("create", "Jane Doe", 500)
 
 # Disable an account
-frontend.process_transaction("disable", "12345")
+#frontend.process_transaction("disable", "12345")
 
 # Change the plan for an account
-frontend.process_transaction("changeplan", "12345", "NP")
+#frontend.process_transaction("changeplan", "12345", "NP")
 
 # End the session
 frontend.end_session()
