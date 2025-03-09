@@ -1,0 +1,13 @@
+welcome to the banking system
+
+enter session type:
+login accepted
+Enter account holder name to withdraw from:
+Amount account number: 
+Withdrawal successful: $100.00
+Enter account holder name to deposit into:
+Amount account number:
+Deposit successful: $300.00
+Funds are not available for use in the current session.
+Updated balance: $200.00
+session terminated

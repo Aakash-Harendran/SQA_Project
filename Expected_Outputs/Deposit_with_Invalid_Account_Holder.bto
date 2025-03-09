@@ -1,0 +1,8 @@
+welcome to the banking system
+
+enter session type:
+login accepted
+Enter account holder name to deposit into:
+Amount account number:
+Error: "The account number does not belong to the logged-in account holder."
+session terminated

@@ -1,0 +1,10 @@
+welcome to the banking system
+
+enter session type:
+enter account holder name:
+login accepted
+01-withdrawal, 02-transfer, 03-paybill, 04-deposit, 05-create, 06-delete, 07-disable, 08changeplan, 00-end of session 
+account number:
+amount to withdraw:
+Error: "Insufficient balance. Your account balance is lower than the withdrawal amount."
+session terminated
