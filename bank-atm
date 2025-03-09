@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+import sys
+
+class FrontEndSystem:
+    def __init__(self, output_file):
+        self.session_type = None
+        self.logged_in = False
+        self.transaction_logger = TransactionLogger(output_file)
+
+    def start_session(self, session_type):
+        self.session_type = session_type
+        self.logged_in = True
+        self.transaction_logger.log_message(f"Session started as {self.session_type}")
+
+    def process_transaction(self, transaction_code, *args):
+        if not self.logged_in:
+            self.transaction_logger.log_message("Error: You must log in before performing any transactions.")
+            return
+
+        if transaction_code == "login":
+            if Login().authenticate_user(*args):
+                self.transaction_logger.log_message("Login successful")
+            else:
+                self.transaction_logger.log_message("Error: Invalid login details.")
+        elif transaction_code == "withdraw":
+            Withdraw().withdraw_amount(*args, self.transaction_logger)
+        elif transaction_code == "transfer":
+            Transfer().transfer_funds(*args, self.transaction_logger)
+        elif transaction_code == "paybill":
+            PayBill().pay_bill(*args, self.transaction_logger)
+        elif transaction_code == "deposit":
+            Deposit().deposit_funds(*args, self.transaction_logger)
+        elif transaction_code == "create":
+            CreateAccount().create_new_account(*args, self.transaction_logger)
+        elif transaction_code == "delete":
+            DeleteAccount().remove_account(*args, self.transaction_logger)
+        elif transaction_code == "disable":
+            DisableAccount().disable_bank_account(*args, self.transaction_logger)
+        elif transaction_code == "changeplan":
+            ChangePlan().change_transaction_plan(*args, self.transaction_logger)
+        elif transaction_code == "logout":
+            self.end_session()
+        else:
+            self.transaction_logger.log_message(f"Error: Invalid transaction code {transaction_code}")
+
+    def end_session(self):
+        self.logged_in = False
+        self.session_type = None
+        self.transaction_logger.log_message("Session ended.")
+
+class TransactionLogger:
+    def __init__(self, output_file):
+        self.output_file = output_file
+        self.transactions = []  # To hold transactions
+
+    def log_message(self, message):
+        print(message)  # Print to terminal
+        with open(self.output_file, "a") as f:
+            f.write(message + "\n")
+
+    def log_transaction(self, transaction_code, account_holder, account_number, amount, mm):
+        formatted_amount = f"{float(amount):08.2f}"
+
+        # Format the transaction to match the required 40-character width
+        formatted_transaction = (
+            f"{transaction_code:>2}_"
+            f"{account_holder[:20]:<20}_"
+            f"{account_number:>5}_"
+            f"{formatted_amount}_"
+            f"{mm}"
+        )
+
+        # Ensure the transaction is exactly 40 characters
+        if len(formatted_transaction) < 40:
+            formatted_transaction = formatted_transaction.ljust(40)
+
+        self.transactions.append(formatted_transaction)
+        print(f"Logged transaction: {formatted_transaction}")
+
+    def write_transaction_log(self):
+        """
+        Writes all recorded transactions to the transaction output file.
+        """
+        transaction_file = self.output_file
+        try:
+            # Print the transactions to see if there are any
+            print(f"Writing {len(self.transactions)} transactions to {transaction_file}")
+
+            with open(transaction_file, 'w') as file:
+                for transaction in self.transactions:
+                    file.write(transaction + "\n")
+
+                # Add the end-of-session transaction (00)
+                file.write("00" + " " * 38 + "\n")
+
+            print(f"Transactions successfully written to {transaction_file}")
+        except Exception as e:
+            print(f"Error writing transaction log: {e}")
+
+class Login:
+    def authenticate_user(self, session_type, account_name=None):
+        valid_standard_users = ["standard_user", "john_doe", "jane_doe"]
+        return session_type == "admin" or (session_type == "standard" and account_name in valid_standard_users)
+
+class Withdraw:
+    def withdraw_amount(self, account_number, amount, balance, logger):
+        if amount > 500:
+            logger.log_message("Error: Withdrawal limit exceeded.")
+            return
+        if amount > balance:
+            logger.log_message("Error: Insufficient balance.")
+            return
+        balance -= amount
+        logger.log_message(f"Successfully withdrew ${amount}. New balance: ${balance}")
+        logger.log_transaction("WD", account_number, account_number, amount, "MM")
+
+class Transfer:
+    def transfer_funds(self, from_account, to_account, amount, logger):
+        logger.log_message(f"Transferred ${amount} from {from_account} to {to_account}")
+        logger.log_transaction("TR", from_account, to_account, amount, "MM")
+
+class PayBill:
+    def pay_bill(self, account_number, biller, amount, logger):
+        logger.log_message(f"Paid ${amount} to {biller} from account {account_number}")
+        logger.log_transaction("PB", account_number, account_number, amount, "MM")
+
+class Deposit:
+    def deposit_funds(self, account_number, amount, logger):
+        logger.log_message(f"Deposited ${amount} into account {account_number}")
+        logger.log_transaction("DP", account_number, account_number, amount, "MM")
+
+class CreateAccount:
+    def create_new_account(self, name, balance, logger):
+        logger.log_message(f"Created new account for {name} with balance ${balance}")
+        logger.log_transaction("CA", name, name, balance, "MM")
+
+class DeleteAccount:
+    def remove_account(self, account_number, logger):
+        logger.log_message(f"Deleted account {account_number}")
+        logger.log_transaction("DA", account_number, account_number, 0, "MM")
+
+class DisableAccount:
+    def disable_bank_account(self, account_number, logger):
+        logger.log_message(f"Disabled account {account_number}")
+        logger.log_transaction("DA", account_number, account_number, 0, "MM")
+
+class ChangePlan:
+    def change_transaction_plan(self, account_number, plan, logger):
+        logger.log_message(f"Changed plan for {account_number} to {plan}")
+        logger.log_transaction("CP", account_number, account_number, 0, "MM")
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: python bank_atm.py <input_file> <output_file>")
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+
+    frontend = FrontEndSystem(output_file)
+
+    with open(input_file, "r") as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) == 0:
+                continue
+            command = parts[0]
+            args = parts[1:]
+            frontend.process_transaction(command, *args)
+
+    # After all transactions, write them to the output file
+    frontend.transaction_logger.write_transaction_log()
+
+if __name__ == "__main__":
+    main()
