@@ -1,6 +1,48 @@
 #!/usr/bin/env python3
 import sys
+import os
 
+def read_and_parse_accounts(account_file):
+    accounts = {}
+    try:
+        with open(account_file, 'r') as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    break
+                line = line.rstrip() 
+
+                if "END_OF_FILE" in line:
+                    break
+
+                account_num = line[0:5]
+                name = line[6:26].strip().replace('_', ' ')
+                status = line[27:28].strip() 
+                balance_str = line[29:].strip()
+
+                # Add validation for malformed lines
+                if len(account_num) != 5 or not account_num.isdigit():
+                    print(f"Error: Invalid account number '{account_num}'")
+                    continue
+
+                try:
+                    balance = float(balance_str.split('_')[-1])
+                except ValueError:
+                    print(f"Error: Invalid balance format for account {account_num}. Balance: '{balance_str}'")
+                    continue
+
+                accounts[account_num] = {
+                    "name": name,
+                    "status": status,
+                    "balance": balance
+                }
+
+    except Exception as e:
+        print(f"Error reading accounts from {account_file}: {e}")
+
+    return accounts
+
+# Front End System and Transaction classes (as you already have)
 class FrontEndSystem:
     def __init__(self, output_file):
         self.session_type = None
@@ -51,56 +93,19 @@ class FrontEndSystem:
 class TransactionLogger:
     def __init__(self, output_file):
         self.output_file = output_file
-        self.transactions = []  # To hold transactions
 
     def log_message(self, message):
         print(message)  # Print to terminal
         with open(self.output_file, "a") as f:
             f.write(message + "\n")
 
-    def log_transaction(self, transaction_code, account_holder, account_number, amount, mm):
-        formatted_amount = f"{float(amount):08.2f}"
-
-        # Format the transaction to match the required 40-character width
-        formatted_transaction = (
-            f"{transaction_code:>2}_"
-            f"{account_holder[:20]:<20}_"
-            f"{account_number:>5}_"
-            f"{formatted_amount}_"
-            f"{mm}"
-        )
-
-        # Ensure the transaction is exactly 40 characters
-        if len(formatted_transaction) < 40:
-            formatted_transaction = formatted_transaction.ljust(40)
-
-        self.transactions.append(formatted_transaction)
-        print(f"Logged transaction: {formatted_transaction}")
-
-    def write_transaction_log(self):
-        """
-        Writes all recorded transactions to the transaction output file.
-        """
-        transaction_file = self.output_file
-        try:
-            # Print the transactions to see if there are any
-            print(f"Writing {len(self.transactions)} transactions to {transaction_file}")
-
-            with open(transaction_file, 'w') as file:
-                for transaction in self.transactions:
-                    file.write(transaction + "\n")
-
-                # Add the end-of-session transaction (00)
-                file.write("00" + " " * 38 + "\n")
-
-            print(f"Transactions successfully written to {transaction_file}")
-        except Exception as e:
-            print(f"Error writing transaction log: {e}")
-
 class Login:
-    def authenticate_user(self, session_type, account_name=None):
-        valid_standard_users = ["standard_user", "john_doe", "jane_doe"]
-        return session_type == "admin" or (session_type == "standard" and account_name in valid_standard_users)
+    def authenticate_user(self, session_type, account_name=None, accounts_data=None):
+        if session_type == "admin":
+            return True  # Admin always authenticated
+        if session_type == "standard" and account_name in accounts_data:
+            return True
+        return False  # Default to unsuccessful login
 
 class Withdraw:
     def withdraw_amount(self, account_number, amount, balance, logger):
@@ -112,64 +117,77 @@ class Withdraw:
             return
         balance -= amount
         logger.log_message(f"Successfully withdrew ${amount}. New balance: ${balance}")
-        logger.log_transaction("WD", account_number, account_number, amount, "MM")
 
 class Transfer:
     def transfer_funds(self, from_account, to_account, amount, logger):
         logger.log_message(f"Transferred ${amount} from {from_account} to {to_account}")
-        logger.log_transaction("TR", from_account, to_account, amount, "MM")
 
 class PayBill:
     def pay_bill(self, account_number, biller, amount, logger):
         logger.log_message(f"Paid ${amount} to {biller} from account {account_number}")
-        logger.log_transaction("PB", account_number, account_number, amount, "MM")
 
 class Deposit:
     def deposit_funds(self, account_number, amount, logger):
         logger.log_message(f"Deposited ${amount} into account {account_number}")
-        logger.log_transaction("DP", account_number, account_number, amount, "MM")
 
 class CreateAccount:
     def create_new_account(self, name, balance, logger):
         logger.log_message(f"Created new account for {name} with balance ${balance}")
-        logger.log_transaction("CA", name, name, balance, "MM")
 
 class DeleteAccount:
     def remove_account(self, account_number, logger):
         logger.log_message(f"Deleted account {account_number}")
-        logger.log_transaction("DA", account_number, account_number, 0, "MM")
 
 class DisableAccount:
     def disable_bank_account(self, account_number, logger):
         logger.log_message(f"Disabled account {account_number}")
-        logger.log_transaction("DA", account_number, account_number, 0, "MM")
 
 class ChangePlan:
     def change_transaction_plan(self, account_number, plan, logger):
         logger.log_message(f"Changed plan for {account_number} to {plan}")
-        logger.log_transaction("CP", account_number, account_number, 0, "MM")
 
+# Main function to handle multiple test cases
 def main():
     if len(sys.argv) != 3:
-        print("Usage: python bank_atm.py <input_file> <output_file>")
+        print("Usage: python bank_atm.py <output_file> <account_file>")
         sys.exit(1)
 
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
+    output_file = sys.argv[1]
+    account_file = sys.argv[2]
 
-    frontend = FrontEndSystem(output_file)
+    # Load account data from the specified file
+    accounts_data = read_and_parse_accounts(account_file)
 
-    with open(input_file, "r") as f:
-        for line in f:
-            parts = line.strip().split()
-            if len(parts) == 0:
-                continue
-            command = parts[0]
-            args = parts[1:]
-            frontend.process_transaction(command, *args)
+    # Get the list of input files from the Inputs folder
+    input_folder = "Tests/Inputs"
+    
+    # Check if the Inputs folder exists
+    if not os.path.exists(input_folder):
+        print(f"Error: The folder '{input_folder}' does not exist.")
+        sys.exit(1)
 
-    # After all transactions, write them to the output file
-    frontend.transaction_logger.write_transaction_log()
+    input_files = [f for f in os.listdir(input_folder) if f.endswith(".inp")]
+
+    if not input_files:
+        print(f"Error: No input files found in the '{input_folder}' directory.")
+        sys.exit(1)
+
+    # Process each .imp file in the Inputs folder
+    for input_file in input_files:
+        input_path = os.path.join(input_folder, input_file)
+        print(f"\nProcessing test case: {input_file}")
+        
+        # Process each input file
+        frontend = FrontEndSystem(output_file)
+
+        with open(input_path, "r") as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) == 0:
+                    continue
+                command = parts[0]
+                args = parts[1:]
+                frontend.process_transaction(command, *args)
 
 if __name__ == "__main__":
     main()
